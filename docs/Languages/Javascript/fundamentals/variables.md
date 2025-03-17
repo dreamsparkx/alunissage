@@ -23,7 +23,7 @@ var message = 'Hello';
 ```
 The `var` keyword is almost the same as `let`. It also declares a variable but in a slightly different, “old-school” way.
 
-There are subtle differences between `let` and `var`, but they do not matter to us yet. We’ll cover them in detail in the chapter [The old "var"](./old-var).
+There are subtle differences between `let` and `var`, but they do not matter to us yet. We’ll cover them in detail in the chapter [The old "var"](../advanced_workings/old-var).
 :::
 
 :::info[Functional languages]
@@ -91,5 +91,5 @@ alert(color); // #FF7F00
 We can declare variables to store data by using the `var`, `let`, or `const` keywords.
 
 * `let` – is a modern variable declaration.
-* `var` – is an old-school variable declaration. Normally we don’t use it at all, but we’ll cover subtle differences from `let` in the chapter [The old "var"](./old-var), just in case you need them.
+* `var` – is an old-school variable declaration. Normally we don’t use it at all, but we’ll cover subtle differences from `let` in the chapter [The old "var"](../advanced_workings/old-var), just in case you need them.
 * `const` – is like `let`, but the value of the variable can’t be changed.
