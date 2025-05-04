@@ -38,7 +38,7 @@ It is used in very specific cases, like when we receive code from a server, or t
 
 ## Closure
 
-Usually, a function remembers where it was born in the special property `[[Environment]]`. It references the Lexical Environment from where it’s created.
+Usually, a function remembers where it was born in the special property `[[Environment]]`. It references the Lexical Environment from where it’s created (we covered that in the chapter [Variable scope, closure](./variable-scope-closure)).
 
 But when a function is created using `new Function`, its `[[Environment]]` is set to reference not the current Lexical Environment, but the global one.
 
