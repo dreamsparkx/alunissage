@@ -1,0 +1,150 @@
+---
+sidebar_position: 4
+title: Lexical Scope
+---
+
+Lexical context (also called lexical scope) refers to where variables and functions are declared in the source code, which determines what data they can access. This is a foundational concept for understanding how JavaScript resolves variable names, closures, and function behavior.
+
+## 🔍 What is Lexical Context?
+
+* “Lexical” means related to the **position in code** (at the time of writing the code).
+* Lexical context is created whenever:
+    * A **function** is declared.
+	* A **block** ({}) is used (with let or const).
+	* A **module** is defined.
+
+Each lexical context defines a **scope**: a boundary within which variables are visible and accessible.
+
+## 🧠 Lexical Scoping
+
+JavaScript uses **lexical scoping**, which means:
+
+A variable’s scope is determined **at the time of writing** the code (not during runtime), based on its **position in the code structure**.
+
+```js
+function outer() {
+  let outerVar = 'I am from outer';
+
+  function inner() {
+    let innerVar = 'I am from inner';
+
+    console.log(outerVar); // ✅ can access outerVar
+    console.log(innerVar); // ✅ can access innerVar
+  }
+
+  inner();
+  console.log(innerVar); // ❌ ReferenceError
+}
+
+outer();
+```
+
+### Closure Example
+
+```js
+function counter() {
+  let count = 0;
+
+  return function () {
+    count++;
+    console.log(count);
+  };
+}
+
+const increment = counter();
+
+increment(); // 1
+increment(); // 2
+```
+
+* The inner function “remembers” the lexical context in which it was created (counter()).
+* Even after counter() finishes execution, the returned function still has access to count.
+
+## Nested Lexical Contexts (Scope Chain)
+
+Each function or block can nest within another. When accessing variables, JavaScript searches up the lexical scope chain.
+```js
+let globalVar = 'global';
+
+function a() {
+  let aVar = 'a';
+
+  function b() {
+    let bVar = 'b';
+
+    console.log(globalVar); // ✅
+    console.log(aVar);      // ✅
+    console.log(bVar);      // ✅
+  }
+
+  b();
+}
+
+a();
+```
+
+Here, b() has access to:
+* bVar (its own scope)
+* aVar (from a)
+* globalVar (from global scope)
+
+## Lexical Scope in Arrow Functions
+
+Arrow functions inherit the lexical scope of their surrounding code — just like regular functions do.
+
+```js
+const outer = () => {
+  const outerVar = 'from outer';
+
+  const inner = () => {
+    console.log(outerVar); // ✅ accessible due to lexical scope
+  };
+
+  inner();
+};
+
+outer();
+```
+
+inner is defined inside outer, so it has access to variables in outer’s lexical context.
+
+### ⚠️ Arrow Functions and this (lexical this)
+
+Unlike regular functions, arrow functions **do not have their own this**. They inherit this from the lexical context where they are defined.
+```js
+function Timer() {
+  this.seconds = 0;
+
+  setInterval(() => {
+    this.seconds++;
+    console.log(this.seconds);
+  }, 1000);
+}
+```
+
+* The arrow function inside setInterval does not bind its own this.
+* It uses this from Timer’s context, which is the instance of Timer.
+
+Compare this with a regular function:
+```js
+function Timer() {
+  this.seconds = 0;
+
+  setInterval(function () {
+    this.seconds++; // ❌ 'this' is not the Timer instance
+    console.log(this.seconds);
+  }, 1000);
+}
+```
+The regular function has its **own this**, which refers to the global object (window in browsers), not the Timer instance.
+
+### ❌ Arrow Functions Cannot Be Constructors
+
+Because arrow functions do not have their own lexical context for this, you cannot use new with them:
+```js
+const Person = (name) => {
+  this.name = name;
+};
+
+const p = new Person('Alice'); // ❌ TypeError: Person is not a constructor
+```
