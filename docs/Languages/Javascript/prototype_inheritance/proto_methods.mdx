@@ -1,0 +1,160 @@
+---
+sidebar_position: 4
+title: Prototype methods, objects without __proto__
+---
+import ObjectPrototype2SVG from '@site/static/svg/object-prototype-2.svg';
+import ObjectPrototypeNullSVG from '@site/static/svg/object-prototype-null.svg';
+
+Setting or reading the prototype with `obj.__proto__` is considered outdated and somewhat deprecated (moved to the so-called “Annex B” of the JavaScript standard, meant for browsers only).
+
+The modern methods to get/set a prototype are:
+
+* Object.getPrototypeOf(obj) – returns the `[[Prototype]]` of `obj`.
+* Object.setPrototypeOf(obj, proto) – sets the `[[Prototype]]` of `obj` to `proto`.
+
+The only usage of `__proto__`, that’s not frowned upon, is as a property when creating a new object: `{ __proto__: ... }`.
+
+Although, there’s a special method for this too:
+
+* Object.create(proto[, descriptors]) – creates an empty object with given `proto` as `[[Prototype]]` and optional property descriptors.
+
+```js {6,10,12}
+let animal = {
+  eats: true
+};
+
+// create a new object with animal as a prototype
+let rabbit = Object.create(animal); // same as {__proto__: animal}
+
+alert(rabbit.eats); // true
+
+alert(Object.getPrototypeOf(rabbit) === animal); // true
+
+Object.setPrototypeOf(rabbit, {}); // change the prototype of rabbit to {}
+```
+
+The `Object.create` method is a bit more powerful, as it has an optional second argument: property descriptors.
+
+We can provide additional properties to the new object there, like this:
+
+```js
+let animal = {
+  eats: true
+};
+
+let rabbit = Object.create(animal, {
+  jumps: {
+    value: true
+  }
+});
+
+alert(rabbit.jumps); // true
+```
+
+The descriptors are in the same format as described in the chapter [Property flags and descriptors](../object_properties_configuration/property_flag_descriptors).
+
+We can use `Object.create` to perform an object cloning more powerful than copying properties in `for..in`:
+
+```js
+let clone = Object.create(
+  Object.getPrototypeOf(obj), Object.getOwnPropertyDescriptors(obj)
+);
+```
+
+This call makes a truly exact copy of `obj`, including all properties: enumerable and non-enumerable, data properties and setters/getters – everything, and with the right `[[Prototype]]`.
+
+## "Very plain" objects
+
+As we know, objects can be used as associative arrays to store key/value pairs.
+
+…But if we try to store user-provided keys in it (for instance, a user-entered dictionary), we can see an interesting glitch: all keys work fine except `"__proto__"`.
+
+Check out the example:
+
+```js
+let obj = {};
+
+let key = prompt("What's the key?", "__proto__");
+obj[key] = "some value";
+
+alert(obj[key]); // [object Object], not "some value"!
+```
+
+Here, if the user types in `__proto__`, the assignment in line 4 is ignored!
+
+That could surely be surprising for a non-developer, but pretty understandable for us. The `__proto__` property is special: it must be either an object or `null`. A string can not become a prototype. That’s why assigning a string to `__proto__` is ignored.
+
+But we didn’t intend to implement such behavior, right? We want to store key/value pairs, and the key named `"__proto__"` was not properly saved. So that’s a bug!
+
+Here the consequences are not terrible. But in other cases we may be storing objects instead of strings in obj, and then the prototype will indeed be changed. As a result, the execution will go wrong in totally unexpected ways.
+
+What’s worse – usually developers do not think about such possibility at all. That makes such bugs hard to notice and even turn them into vulnerabilities, especially when JavaScript is used on server-side.
+
+Unexpected things also may happen when assigning to `obj.toString`, as it’s a built-in object method.
+
+How can we avoid this problem?
+
+First, we can just switch to using `Map` for storage instead of plain objects, then everything’s fine:
+
+```js
+let map = new Map();
+
+let key = prompt("What's the key?", "__proto__");
+map.set(key, "some value");
+
+alert(map.get(key)); // "some value" (as intended)
+```
+…But `Object` syntax is often more appealing, as it’s more concise.
+
+Fortunately, we can use objects, because language creators gave thought to that problem long ago.
+
+As we know, `__proto__` is not a property of an object, but an accessor property of `Object.prototype`:
+
+<div style={{background: 'white'}}>
+  <ObjectPrototype2SVG/>
+</div>
+
+So, if `obj.__proto__` is read or set, the corresponding getter/setter is called from its prototype, and it gets/sets `[[Prototype]]`.
+
+As it was said in the beginning of this tutorial section: `__proto__` is a way to access `[[Prototype]]`, it is not `[[Prototype]]` itself.
+
+Now, if we intend to use an object as an associative array and be free of such problems, we can do it with a little trick:
+
+```js {1-2}
+let obj = Object.create(null);
+// or: obj = { __proto__: null }
+
+let key = prompt("What's the key?", "__proto__");
+obj[key] = "some value";
+
+alert(obj[key]); // "some value"
+```
+`Object.create(null)` creates an empty object without a prototype (`[[Prototype]]` is `null`):
+
+<div style={{background: 'white'}}>
+  <ObjectPrototypeNullSVG/>
+</div>
+
+So, there is no inherited getter/setter for `__proto__`. Now it is processed as a regular data property, so the example above works right.
+
+We can call such objects “very plain” or “pure dictionary” objects, because they are even simpler than the regular plain object `{...}`.
+
+A downside is that such objects lack any built-in object methods, e.g. `toString`:
+
+```js {1}
+let obj = Object.create(null);
+
+alert(obj); // Error (no toString)
+```
+
+…But that’s usually fine for associative arrays.
+
+Note that most object-related methods are `Object.something(...)`, like `Object.keys(obj)` – they are not in the prototype, so they will keep working on such objects:
+
+```js
+let chineseDictionary = Object.create(null);
+chineseDictionary.hello = "你好";
+chineseDictionary.bye = "再见";
+
+alert(Object.keys(chineseDictionary)); // hello,bye
+```
