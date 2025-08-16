@@ -1,0 +1,79 @@
+---
+sidebar_position: 9
+title: Call, Apply and Bind
+---
+
+## call()
+
+Invokes the function immediately with a specified this value and arguments passed individually.
+
+```js
+const person = {
+  firstName: 'John',
+  lastName: 'Doe'
+};
+
+function greet(greeting, punctuation) {
+  return `${greeting} ${this.firstName} ${this.lastName}${punctuation}`;
+}
+
+// Using call()
+const result = greet.call(person, 'Hello', '!');
+console.log(result); // "Hello John Doe!"
+```
+
+## apply()
+
+Similar to call(), but arguments are passed as an array instead of individually.
+
+```js
+const person = {
+  firstName: 'John',
+  lastName: 'Doe'
+};
+
+function greet(greeting, punctuation) {
+  return `${greeting} ${this.firstName} ${this.lastName}${punctuation}`;
+}
+
+// Using apply()
+const result = greet.apply(person, ['Hello', '!']);
+console.log(result); // "Hello John Doe!"
+
+// Useful for functions that take variable arguments
+const numbers = [1, 2, 3, 4, 5];
+const max = Math.max.apply(null, numbers);
+console.log(max); // 5
+```
+
+## bind()
+
+Returns a new function with a permanently bound this value. The function is not executed immediately.
+
+```js
+const person = {
+  firstName: 'John',
+  lastName: 'Doe'
+};
+
+function greet(greeting, punctuation) {
+  return `${greeting} ${this.firstName} ${this.lastName}${punctuation}`;
+}
+
+// Using bind()
+const boundGreet = greet.bind(person, 'Hello');
+const result = boundGreet('!');
+console.log(result); // "Hello John Doe!"
+
+// Useful for event handlers
+const button = document.querySelector('button');
+const obj = {
+  name: 'MyObject',
+  handleClick() {
+    console.log(`${this.name} was clicked`);
+  }
+};
+
+// Without bind, 'this' would refer to the button
+button.addEventListener('click', obj.handleClick.bind(obj));
+```
