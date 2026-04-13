@@ -26,7 +26,7 @@ jobs:
             - name: Test build website
               run: pnpm build
             - name: Upload Build Artifact
-              uses: actions/upload-pages-artifact@v4
+              uses: actions/upload-pages-artifact@v5
               with:
                 path: build
     deploy:
